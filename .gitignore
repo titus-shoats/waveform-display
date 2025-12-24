@@ -2,3 +2,13 @@
 **/Builds
 **/JuceLibraryCode
 **/Installer
+
+# Win32 build artifacts
+Win32Version/build/
+Win32Version/out/
+Win32Version/.vs/
+Win32Version/*.user
+Win32Version/*.suo
+Win32Version/*.sln
+Win32Version/*.vcxproj
+Win32Version/*.vcxproj.filters
