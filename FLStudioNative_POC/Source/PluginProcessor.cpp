@@ -13,6 +13,10 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+// Buffer size constants (must match fp_cplug.h)
+constexpr size_t LONG_NAME_BUFFER_SIZE = 256;
+constexpr size_t SHORT_NAME_BUFFER_SIZE = 64;
+
 // Parameter indices
 enum Parameters
 {
@@ -25,11 +29,11 @@ enum Parameters
 HelloWorldProcessor::HelloWorldProcessor(int PlugTag, TFruityPlugHost* PlugHost)
     : TCPPFruityPlug(PlugTag, PlugHost)
 {
-    // Initialize plugin info - buffers are 256 and 64 bytes
-    std::strncpy(Info.LongName, "FL Studio Native + JUCE GUI POC", sizeof(LongNameBuffer) - 1);
-    Info.LongName[sizeof(LongNameBuffer) - 1] = '\0';  // Ensure null termination
-    std::strncpy(Info.ShortName, "JUCE POC", sizeof(ShortNameBuffer) - 1);
-    Info.ShortName[sizeof(ShortNameBuffer) - 1] = '\0';  // Ensure null termination
+    // Initialize plugin info - use defined buffer sizes
+    std::strncpy(Info.LongName, "FL Studio Native + JUCE GUI POC", LONG_NAME_BUFFER_SIZE - 1);
+    Info.LongName[LONG_NAME_BUFFER_SIZE - 1] = '\0';  // Ensure null termination
+    std::strncpy(Info.ShortName, "JUCE POC", SHORT_NAME_BUFFER_SIZE - 1);
+    Info.ShortName[SHORT_NAME_BUFFER_SIZE - 1] = '\0';  // Ensure null termination
     Info.NumParams = Param_Count;
     Info.Flags = FPF_Type;  // Effect plugin (not generator)
     
@@ -187,14 +191,14 @@ int HelloWorldProcessor::ProcessParam(int Index, int Value, int Flags)
     
     if (Flags & REC_UpdateValue)
     {
-        // Update parameter value
+        // Update parameter value with bounds checking
         switch (Index)
         {
             case Param_Gain:
-                gain = flParamToNormalized(Value);
+                gain = juce::jlimit(0.0f, 1.0f, flParamToNormalized(Value));
                 break;
             case Param_Pan:
-                pan = flParamToNormalized(Value);
+                pan = juce::jlimit(0.0f, 1.0f, flParamToNormalized(Value));
                 break;
             case Param_Bypass:
                 bypass = (Value > 32767);
@@ -276,10 +280,10 @@ void HelloWorldProcessor::createEditorWindow(HWND parentWindow)
     
     if (!containerWindow)
     {
-        // Failed to create window - log error for debugging
-        DWORD error = GetLastError();
-        // TODO: Add proper error logging
-        // For now, just return gracefully
+        // Failed to create window
+        // In production, you should log GetLastError() for debugging:
+        // DWORD error = GetLastError();
+        // Log error or show message to user
         return;
     }
     
