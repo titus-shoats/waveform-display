@@ -25,13 +25,13 @@ enum Parameters
 HelloWorldProcessor::HelloWorldProcessor(int PlugTag, TFruityPlugHost* PlugHost)
     : TCPPFruityPlug(PlugTag, PlugHost)
 {
-    // Initialize plugin info
-    std::strncpy(Info.LongName, "FL Studio Native + JUCE GUI POC", 255);
-    Info.LongName[255] = '\0';  // Ensure null termination
-    std::strncpy(Info.ShortName, "JUCE POC", 63);
-    Info.ShortName[63] = '\0';  // Ensure null termination
+    // Initialize plugin info - buffers are 256 and 64 bytes
+    std::strncpy(Info.LongName, "FL Studio Native + JUCE GUI POC", sizeof(LongNameBuffer) - 1);
+    Info.LongName[sizeof(LongNameBuffer) - 1] = '\0';  // Ensure null termination
+    std::strncpy(Info.ShortName, "JUCE POC", sizeof(ShortNameBuffer) - 1);
+    Info.ShortName[sizeof(ShortNameBuffer) - 1] = '\0';  // Ensure null termination
     Info.NumParams = Param_Count;
-    Info.Flags = FPF_Type | FPF_Generator;  // Effect plugin
+    Info.Flags = FPF_Type;  // Effect plugin (not generator)
     
     // Initialize JUCE message manager if not already initialized
     // Note: This is done in PluginEntry.cpp, but we check here too

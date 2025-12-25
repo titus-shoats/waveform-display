@@ -1,6 +1,10 @@
 # CMakeLists.txt
 # FL Studio Native + JUCE GUI POC - Build Configuration
 #
+# ⚠️ IMPORTANT: This CMakeLists.txt is a TEMPLATE ⚠️
+# You MUST configure JUCE integration before building (see options below).
+# Choose ONE of the JUCE setup options and uncomment the relevant lines.
+#
 # This CMake file demonstrates how to build an FL Studio native plugin
 # that embeds a JUCE GUI. The key challenges are:
 # - Linking JUCE framework properly
@@ -19,16 +23,25 @@ project(FLStudioNative_POC VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# JUCE Setup
-# Option 1: JUCE as a subdirectory (recommended)
-# Uncomment and adjust path if JUCE is a submodule or in a subdirectory
-# add_subdirectory(../JUCE ./juce-build)
+# ============================================================================
+# JUCE Setup - YOU MUST CHOOSE ONE OPTION BELOW
+# ============================================================================
 
-# Option 2: JUCE installed via package manager
+# Option 1: JUCE as a subdirectory (recommended for development)
+# Uncomment and adjust path if JUCE is a submodule or in a subdirectory
+# Example: If JUCE is at ../JUCE relative to this file:
+# add_subdirectory(../JUCE ${CMAKE_BINARY_DIR}/juce-build)
+
+# Option 2: JUCE installed via package manager (e.g., vcpkg)
+# Uncomment if you have JUCE installed system-wide
 # find_package(JUCE CONFIG REQUIRED)
 
-# For this POC, we'll assume JUCE is available via the parent project
-# If building standalone, you'll need to add JUCE via one of the options above
+# Option 3: Use existing JUCE from parent project
+# If this POC is part of a larger CMake project that already includes JUCE,
+# no additional setup is needed here.
+
+# ⚠️ NOTE: Build will fail if JUCE is not available via one of these methods!
+# ============================================================================
 
 # FL Studio SDK - Interface library
 add_library(fl_sdk INTERFACE)
