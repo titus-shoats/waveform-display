@@ -37,9 +37,17 @@ This is a working proof-of-concept that shows how to embed JUCE GUI in FL Studio
 # 1. Get JUCE (if you don't have it)
 git submodule add https://github.com/juce-framework/JUCE.git ../JUCE
 
-# 2. Configure
+# 2. Configure (use correct Visual Studio generator)
 mkdir build && cd build
-cmake .. -G "Visual Studio 17 2022" -A x64
+
+# For Visual Studio 2022:
+cmake .. -G "Visual Studio 17 2022" -A x64 -DJUCE_DIR=C:/path/to/JUCE
+
+# For Visual Studio 2026:
+cmake .. -G "Visual Studio 18 2026" -A x64 -DJUCE_DIR=C:/path/to/JUCE
+
+# To find your generator name:
+cmake --help
 
 # 3. Build
 cmake --build . --config Release
@@ -91,10 +99,12 @@ float flParamToNormalized(int flParam) {
 
 | Problem | Solution |
 |---------|----------|
+| CMake can't find VS | Run `cmake --help` to find correct generator name |
+| JUCE not found | Add `-DJUCE_DIR=C:/path/to/JUCE` to cmake command |
 | Plugin doesn't load | Check 64-bit build, correct directory |
 | Blank editor | Verify `Idle()` is calling message pump |
 | Timer doesn't update | Check JUCE initialization in `CreatePlugInstance()` |
-| Build errors | Update JUCE paths in CMakeLists.txt |
+| Build errors | Verify JUCE path points to valid JUCE installation |
 
 ### What to Do Next
 

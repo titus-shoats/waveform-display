@@ -125,11 +125,25 @@ cd FLStudioNative_POC
 mkdir build
 cd build
 
-# Configure (adjust JUCE path as needed)
+# Configure with auto-detection (JUCE in parent directory)
 cmake .. -G "Visual Studio 17 2022" -A x64
 
-# Or if JUCE is in a specific location:
-cmake .. -G "Visual Studio 17 2022" -A x64 -DJUCE_DIR=C:/SDKs/JUCE
+# Or specify JUCE location explicitly:
+cmake .. -G "Visual Studio 17 2022" -A x64 -DJUCE_DIR=C:/path/to/JUCE
+
+# For Visual Studio 2026 or newer, use the appropriate generator:
+cmake .. -G "Visual Studio 18 2026" -A x64 -DJUCE_DIR=C:/path/to/JUCE
+```
+
+**Visual Studio Generator Names:**
+- Visual Studio 2019: `"Visual Studio 16 2019"`
+- Visual Studio 2022: `"Visual Studio 17 2022"`
+- Visual Studio 2026: `"Visual Studio 18 2026"` (or check `cmake --help` for exact name)
+
+**To find your installed Visual Studio version:**
+```bash
+cmake --help
+# Look for available generators in the output
 ```
 
 ### Step 4: Build
@@ -275,9 +289,28 @@ JUCE GUI component:
 
 ### Build Errors
 
+**CMake can't find Visual Studio:**
+```
+Error: Generator "Visual Studio 17 2022" could not find any instance of Visual Studio
+```
+- **Solution**: Use the correct generator for your Visual Studio version
+- Run `cmake --help` to see available generators
+- For VS 2019: `"Visual Studio 16 2019"`
+- For VS 2022: `"Visual Studio 17 2022"`
+- For VS 2026: `"Visual Studio 18 2026"` (check exact name with `cmake --help`)
+
+**JUCE not found:**
+```
+Error: JUCE not found! Please provide JUCE location...
+```
+- **Solution**: Provide JUCE path via `-DJUCE_DIR=/path/to/JUCE`
+- Or place JUCE in parent directory as `../JUCE`
+- Example: `cmake .. -G "Visual Studio 17 2022" -A x64 -DJUCE_DIR=C:/Users/YourName/JUCE`
+
 **JUCE headers not found:**
 - Update include paths in CMakeLists.txt
-- Set `JUCE_DIR` or `JUCE_MODULES_DIR` in CMake
+- Verify JUCE_DIR points to correct JUCE installation
+- Make sure JUCE directory contains `modules/` subdirectory
 
 **Linker errors:**
 - Ensure all JUCE modules are linked

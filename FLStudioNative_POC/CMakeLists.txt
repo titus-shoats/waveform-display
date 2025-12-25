@@ -24,23 +24,52 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ============================================================================
-# JUCE Setup - YOU MUST CHOOSE ONE OPTION BELOW
+# JUCE Setup - Auto-detection with fallback options
 # ============================================================================
 
-# Option 1: JUCE as a subdirectory (recommended for development)
-# Uncomment and adjust path if JUCE is a submodule or in a subdirectory
-# Example: If JUCE is at ../JUCE relative to this file:
-# add_subdirectory(../JUCE ${CMAKE_BINARY_DIR}/juce-build)
+# Try to find JUCE automatically
+set(JUCE_FOUND FALSE)
 
-# Option 2: JUCE installed via package manager (e.g., vcpkg)
-# Uncomment if you have JUCE installed system-wide
-# find_package(JUCE CONFIG REQUIRED)
+# Option 1: Check if JUCE_DIR is provided via command line (e.g., -DJUCE_DIR=...)
+if(DEFINED JUCE_DIR AND EXISTS "${JUCE_DIR}")
+    message(STATUS "Using JUCE from JUCE_DIR: ${JUCE_DIR}")
+    if(EXISTS "${JUCE_DIR}/modules")
+        add_subdirectory(${JUCE_DIR} ${CMAKE_BINARY_DIR}/juce-build)
+        set(JUCE_FOUND TRUE)
+    elseif(EXISTS "${JUCE_DIR}/CMakeLists.txt")
+        add_subdirectory(${JUCE_DIR} ${CMAKE_BINARY_DIR}/juce-build)
+        set(JUCE_FOUND TRUE)
+    else()
+        message(WARNING "JUCE_DIR is set but doesn't contain valid JUCE installation")
+    endif()
+endif()
 
-# Option 3: Use existing JUCE from parent project
-# If this POC is part of a larger CMake project that already includes JUCE,
-# no additional setup is needed here.
+# Option 2: Check for JUCE in parent directory
+if(NOT JUCE_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../JUCE")
+    message(STATUS "Found JUCE in parent directory")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../JUCE ${CMAKE_BINARY_DIR}/juce-build)
+    set(JUCE_FOUND TRUE)
+endif()
 
-# ⚠️ NOTE: Build will fail if JUCE is not available via one of these methods!
+# Option 3: Try find_package for system-wide installation
+if(NOT JUCE_FOUND)
+    find_package(JUCE CONFIG QUIET)
+    if(JUCE_FOUND)
+        message(STATUS "Found JUCE via find_package")
+    endif()
+endif()
+
+# If JUCE still not found, provide helpful error message
+if(NOT JUCE_FOUND)
+    message(FATAL_ERROR 
+        "JUCE not found! Please provide JUCE location using one of these methods:\n"
+        "  1. cmake .. -DJUCE_DIR=/path/to/JUCE\n"
+        "  2. Place JUCE in parent directory (../JUCE)\n"
+        "  3. Install JUCE system-wide and it will be auto-detected\n"
+        "\nExample: cmake .. -G \"Visual Studio 17 2022\" -A x64 -DJUCE_DIR=C:/path/to/JUCE"
+    )
+endif()
+
 # ============================================================================
 
 # FL Studio SDK - Interface library
@@ -59,24 +88,14 @@ add_library(FLStudioNative_POC SHARED
 )
 
 # Link libraries
-# Note: You may need to adjust these based on your JUCE installation
 target_link_libraries(FLStudioNative_POC PRIVATE
     fl_sdk
-    # Uncomment these if using juce_add_plugin or if JUCE is available:
-    # juce::juce_core
-    # juce::juce_audio_basics
-    # juce::juce_audio_processors
-    # juce::juce_gui_basics
-    # juce::juce_gui_extra
-    # juce::juce_events
-)
-
-# Include JUCE headers
-# Adjust this path based on your JUCE installation
-target_include_directories(FLStudioNative_POC PRIVATE
-    # Example paths - adjust for your setup:
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../JUCE/modules
-    # Or if JUCE is installed system-wide, it may be found automatically
+    juce::juce_core
+    juce::juce_audio_basics
+    juce::juce_audio_processors
+    juce::juce_gui_basics
+    juce::juce_gui_extra
+    juce::juce_events
 )
 
 # Set output name and properties for FL Studio DLL
