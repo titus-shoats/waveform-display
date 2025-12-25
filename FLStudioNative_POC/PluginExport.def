@@ -1,0 +1,9 @@
+; PluginExport.def
+; FL Studio Native + JUCE GUI POC - Export Definition File
+;
+; This file tells the linker which functions to export from the DLL.
+; FL Studio expects to find the CreatePlugInstance function.
+
+LIBRARY "FLStudioNative_POC"
+EXPORTS
+    CreatePlugInstance
