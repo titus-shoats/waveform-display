@@ -26,8 +26,10 @@ HelloWorldProcessor::HelloWorldProcessor(int PlugTag, TFruityPlugHost* PlugHost)
     : TCPPFruityPlug(PlugTag, PlugHost)
 {
     // Initialize plugin info
-    std::strcpy(Info.LongName, "FL Studio Native + JUCE GUI POC");
-    std::strcpy(Info.ShortName, "JUCE POC");
+    std::strncpy(Info.LongName, "FL Studio Native + JUCE GUI POC", 255);
+    Info.LongName[255] = '\0';  // Ensure null termination
+    std::strncpy(Info.ShortName, "JUCE POC", 63);
+    Info.ShortName[63] = '\0';  // Ensure null termination
     Info.NumParams = Param_Count;
     Info.Flags = FPF_Type | FPF_Generator;  // Effect plugin
     
@@ -210,13 +212,13 @@ int HelloWorldProcessor::ProcessParam(int Index, int Value, int Flags)
         switch (Index)
         {
             case Param_Gain:
-                std::sprintf(hint, "Gain: %.2f", gain);
+                std::snprintf(hint, sizeof(hint), "Gain: %.2f", gain);
                 break;
             case Param_Pan:
-                std::sprintf(hint, "Pan: %.2f", pan);
+                std::snprintf(hint, sizeof(hint), "Pan: %.2f", pan);
                 break;
             case Param_Bypass:
-                std::sprintf(hint, "Bypass: %s", bypass ? "On" : "Off");
+                std::snprintf(hint, sizeof(hint), "Bypass: %s", bypass ? "On" : "Off");
                 break;
             default:
                 hint[0] = '\0';
@@ -274,7 +276,10 @@ void HelloWorldProcessor::createEditorWindow(HWND parentWindow)
     
     if (!containerWindow)
     {
-        // Failed to create window
+        // Failed to create window - log error for debugging
+        DWORD error = GetLastError();
+        // TODO: Add proper error logging
+        // For now, just return gracefully
         return;
     }
     
