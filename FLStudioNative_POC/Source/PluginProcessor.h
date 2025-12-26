@@ -18,7 +18,15 @@
 #pragma once
 
 #include "../SDK/fp_cplug.h"
-#include <JuceHeader.h>
+
+// JUCE 7+ module headers (instead of monolithic JuceHeader.h)
+#include <juce_core/juce_core.h>
+#include <juce_events/juce_events.h>
+#include <juce_audio_basics/juce_audio_basics.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_gui_extra/juce_gui_extra.h>
+
 #include <memory>
 
 // Forward declaration

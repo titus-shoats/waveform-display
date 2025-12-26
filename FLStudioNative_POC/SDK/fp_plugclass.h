@@ -8,6 +8,9 @@
 #include "fp_def.h"
 #include "generictransport.h"
 
+// Type definitions - must come before class definitions that use them
+typedef void* PWAV32FS;  // Pointer to float stereo audio buffer
+
 // Forward declarations
 struct TFruityPlugInfo;
 struct TFruityPlugHost;
@@ -81,6 +84,3 @@ public:
     virtual void Voice_Release(int VoiceIndex) {}
     virtual void Voice_Kill(int VoiceIndex) {}
 };
-
-// Type definitions
-typedef void* PWAV32FS;  // Pointer to float stereo audio buffer
