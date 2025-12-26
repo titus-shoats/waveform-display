@@ -39,7 +39,8 @@ void HelloWorldProcessor::Idle()
     // We use it to pump the JUCE message manager
     if (juce::MessageManager::getInstanceWithoutCreating())
     {
-        juce::MessageManager::getInstance()->runDispatchLoopUntil(1);
+        // JUCE 7+ uses runDispatchLoopFor instead of runDispatchLoopUntil
+        juce::MessageManager::getInstance()->runDispatchLoopFor(1);
     }
 }
 ```
@@ -100,10 +101,20 @@ if (!g_juceInitialized) {
 ## Build Requirements
 
 - **Windows Only**: FL Studio is Windows-exclusive
-- **Visual Studio 2019/2022**: Required for MSVC compiler
+- **Visual Studio 2019/2022/2026**: Required for MSVC compiler
 - **CMake 3.22+**: Build system
-- **JUCE 7.x+**: GUI framework
+- **JUCE 7.x+**: GUI framework (JUCE 5/6 not supported)
 - **64-bit**: Modern FL Studio requires 64-bit plugins
+
+## JUCE 7+ Compatibility Notes
+
+This POC is designed for JUCE 7.x and includes several compatibility measures:
+
+1. **Module-based headers**: Uses individual module headers (`juce_core/juce_core.h`) instead of monolithic `JuceHeader.h`
+2. **API changes**: Uses `runDispatchLoopFor()` instead of deprecated `runDispatchLoopUntil()`
+3. **NOMINMAX**: Defines `NOMINMAX` before including Windows.h to prevent min/max macro conflicts
+4. **Win32 API**: Uses explicit ANSI versions (CreateWindowExA, RegisterClassExA) for compatibility
+5. **64-bit compatibility**: Proper pointer-to-integer conversions using intptr_t
 
 ## Next Steps for Full Plugin Conversion
 
