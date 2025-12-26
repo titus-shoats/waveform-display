@@ -165,7 +165,28 @@ public:
     
     void Idle() override
     {
-        // Empty for now
+        // Empty for now - will pump messages in later steps
+    }
+    
+    void SaveRestoreState(void* Stream, int Save) override
+    {
+        // Empty for now - no state to save yet
+    }
+    
+    void Eff_Render(PWAV32FS SourceBuffer, PWAV32FS DestBuffer, int Length) override
+    {
+        // Empty for now - no audio processing yet
+        // Just pass through (copy source to dest)
+        if (SourceBuffer && DestBuffer && SourceBuffer != DestBuffer)
+        {
+            memcpy(DestBuffer, SourceBuffer, Length * 2 * sizeof(float));
+        }
+    }
+    
+    int ProcessParam(int Index, int Value, int Flags) override
+    {
+        // Empty for now - no parameters yet
+        return 0;
     }
 };
 
