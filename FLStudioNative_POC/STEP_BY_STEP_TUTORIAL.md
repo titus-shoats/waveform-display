@@ -70,6 +70,9 @@ FLStudioNative_POC_Step1/
 
 #include "fp_def.h"
 
+// Calling convention - define before use
+#define PLUGIN_CALL __stdcall
+
 // Forward declarations
 struct TFruityPlugInfo;
 struct TFruityPlugHost;
@@ -107,8 +110,6 @@ public:
     virtual void Eff_Render(PWAV32FS SourceBuffer, PWAV32FS DestBuffer, int Length) {}
     virtual int ProcessParam(int Index, int Value, int Flags) { return 0; }
 };
-
-#define PLUGIN_CALL __stdcall
 ```
 
 #### 1.4 Source/PluginProcessor.cpp
