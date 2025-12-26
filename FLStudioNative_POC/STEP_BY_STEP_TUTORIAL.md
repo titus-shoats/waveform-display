@@ -16,6 +16,12 @@ This tutorial builds the FL Studio Native Plugin POC incrementally, testing in F
 ### Goal
 Create the simplest possible FL Studio plugin that loads without errors.
 
+### ⚠️ CRITICAL NOTES
+- **Message IDs Matter**: `FPD_GetPluginInfo` MUST be 46, not 4. Using wrong IDs causes crashes!
+- **All Dispatcher Messages**: Handle all messages sent during initialization (SetSampleRate, SetBlockSize, Reset, SetEnabled)
+- **Pointer Casting**: Use `intptr_t` for proper 64-bit pointer-to-int conversions
+- **Testing**: Always restart FL Studio after copying new DLL
+
 ### Files to Create
 
 #### 1.1 Create Directory Structure
@@ -42,24 +48,20 @@ FLStudioNative_POC_Step1/
 
 #include <windows.h>
 
-// Dispatcher messages
-#define FPD_ProcessMode 0
-#define FPD_Flush 1
-#define FPD_SetEnabled 2
-#define FPD_SetPlaying 3
-#define FPD_GetPluginInfo 4
-#define FPD_ShowEditor 5
-#define FPD_ProcessModeFlags 6
-#define FPD_SetSampleRate 7
-#define FPD_SetBlockSize 8
+// Critical dispatcher messages for Step 1
+#define FPD_SetEnabled          0
+#define FPD_SetSampleRate       1
+#define FPD_SetBlockSize        2
+#define FPD_Reset               3
+#define FPD_ShowEditor          4
+#define FPD_GetPluginInfo       46  // IMPORTANT: Must be 46, not 4!
 
-// Plugin flags
-#define FPF_Type 1
-#define FPF_Generator 2
+// Plugin flags  
+#define FPF_Type            0x0003  // Effect type (bits 0-1)
 
 // Parameter flags
-#define REC_UpdateValue 1
-#define REC_ShowHint 2
+#define REC_UpdateValue     (1 << 0)
+#define REC_ShowHint        (1 << 3)
 ```
 
 #### 1.3 SDK/fp_plugclass.h
@@ -156,8 +158,39 @@ public:
         switch (Index)
         {
             case FPD_GetPluginInfo:
+            {
+                // CRITICAL: Return pointer to plugin info
+                // FL Studio needs this to identify the plugin
                 return static_cast<int>(reinterpret_cast<intptr_t>(&Info));
-                
+            }
+            
+            case FPD_SetSampleRate:
+            {
+                // Sample rate notification - store for later use
+                // Value contains sample rate (e.g., 44100, 48000)
+                return 0;
+            }
+            
+            case FPD_SetBlockSize:
+            {
+                // Block size notification - store for later use
+                // Value contains buffer size (e.g., 512, 1024)
+                return 0;
+            }
+            
+            case FPD_Reset:
+            {
+                // Reset plugin state when FL Studio resets
+                return 0;
+            }
+            
+            case FPD_SetEnabled:
+            {
+                // Plugin enabled/disabled notification
+                // Value: 0 = disabled, 1 = enabled
+                return 0;
+            }
+            
             default:
                 return 0;
         }
@@ -263,8 +296,9 @@ cmake --build . --config Release
 
 ### FL Studio Testing
 
-1. Copy `Release\FLStudioNative_POC_Step1.dll` to `C:\Program Files\Image-Line\FL Studio\Plugins\Fruity\`
-2. Restart FL Studio
+1. Copy `Release\FLStudioNative_POC_Step1.dll` to `C:\Program Files\Image-Line\FL Studio 2025\Plugins\Fruity\`
+   (Adjust path for your FL Studio version)
+2. **IMPORTANT**: Restart FL Studio completely
 3. Open the mixer → Add effect → Fruity → Look for "Minimal FL Plugin"
 4. Add the plugin
 
@@ -273,6 +307,11 @@ cmake --build . --config Release
 - Loads without crash
 - No editor window (clicking does nothing yet)
 - Can be removed without crash
+
+**Troubleshooting**:
+- **If FL Studio crashes**: Check that `FPD_GetPluginInfo` is defined as 46, not 4
+- **If plugin doesn't appear**: Verify DLL is in correct Plugins/Fruity/ directory
+- **If "Access Violation" error**: Ensure all Dispatcher cases return valid values
 
 **✅ CHECKPOINT**: If plugin loads successfully, proceed to Step 2.
 
