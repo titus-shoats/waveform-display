@@ -5,6 +5,11 @@
 
 #pragma once
 
+// Prevent Windows.h from defining min/max macros that conflict with JUCE
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
 #include <windows.h>
 
 // Plugin types

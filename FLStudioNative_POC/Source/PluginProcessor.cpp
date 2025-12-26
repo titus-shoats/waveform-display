@@ -98,7 +98,8 @@ int HelloWorldProcessor::Dispatcher(int Index, int Value, void* Ptr, int PtrSize
         case FPD_GetPluginInfo:
         {
             // Return plugin info structure
-            return reinterpret_cast<int>(&Info);
+            // Use intptr_t for proper pointer-to-integer conversion on 64-bit systems
+            return static_cast<int>(reinterpret_cast<intptr_t>(&Info));
         }
         
         case FPD_Reset:
@@ -121,7 +122,8 @@ void HelloWorldProcessor::Idle()
     // This is critical for JUCE GUI to work - it processes events, timers, etc.
     if (juce::MessageManager::getInstanceWithoutCreating())
     {
-        juce::MessageManager::getInstance()->runDispatchLoopUntil(1);
+        // JUCE 7+ uses runDispatchLoopFor instead of runDispatchLoopUntil
+        juce::MessageManager::getInstance()->runDispatchLoopFor(1);
     }
 }
 
@@ -249,27 +251,27 @@ void HelloWorldProcessor::createEditorWindow(HWND parentWindow)
     
     // Create Win32 container window
     // This window will host the JUCE editor
-    WNDCLASSEX wc = {};
-    wc.cbSize = sizeof(WNDCLASSEX);
+    WNDCLASSEXA wc = {};
+    wc.cbSize = sizeof(WNDCLASSEXA);
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = GetModuleHandle(nullptr);
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-    wc.lpszClassName = L"JUCEPOCContainer";
+    wc.lpszClassName = "JUCEPOCContainer";  // Use ANSI string for non-UNICODE builds
     
     static bool registered = false;
     if (!registered)
     {
-        RegisterClassEx(&wc);
+        RegisterClassExA(&wc);  // Use ANSI version explicitly
         registered = true;
     }
     
     // Create the container window
-    containerWindow = CreateWindowEx(
+    containerWindow = CreateWindowExA(  // Use ANSI version explicitly
         0,
-        L"JUCEPOCContainer",
-        L"JUCE Editor Container",
+        "JUCEPOCContainer",
+        "JUCE Editor Container",
         WS_CHILD | WS_VISIBLE,
         0, 0, 600, 400,
         parentWindow,
