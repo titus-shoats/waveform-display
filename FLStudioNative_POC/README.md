@@ -61,12 +61,14 @@ This POC serves as a template for converting existing JUCE-based plugins (like w
 ## Requirements
 
 ### Build Tools
-- **Visual Studio 2019 or 2022** (Community Edition or higher)
+- **Visual Studio 2019, 2022, or 2026** (Community Edition or higher)
 - **CMake 3.22+** ([Download here](https://cmake.org/download/))
 - **Windows 10/11** (FL Studio is Windows-only)
 
 ### Dependencies
 - **JUCE Framework 7.x+** ([GitHub](https://github.com/juce-framework/JUCE))
+  - ⚠️ **JUCE 7+ Required**: This POC uses modern JUCE 7+ module headers (`juce_core/juce_core.h`, etc.)
+  - JUCE 5/6 with monolithic `JuceHeader.h` is not supported
 - **FL Studio SDK** (included as minimal headers in `SDK/` directory)
 
 ### Runtime
