@@ -14,12 +14,18 @@
 #include <windowsx.h>
 #include <commctrl.h>
 #include <string>
+#include <memory>
+
+#include "GUIComponents.h"
+#include "SamplerProcessor.h"
 
 // Forward declarations
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void InitializeDoubleBuffering(HWND hwnd);
 void CleanupDoubleBuffering();
 void PaintDoubleBuffered(HWND hwnd);
+void CreateUI(HWND hwnd);
+void CleanupUI();
 
 // Global variables for double buffering
 HDC g_hdcMem = NULL;
@@ -27,6 +33,11 @@ HBITMAP g_hbmMem = NULL;
 HBITMAP g_hbmOld = NULL;
 int g_clientWidth = 0;
 int g_clientHeight = 0;
+
+// Global UI and audio components
+std::unique_ptr<ComponentManager> g_componentManager;
+std::unique_ptr<Component> g_rootComponent;
+std::unique_ptr<SamplerProcessor> g_audioProcessor;
 
 // Application class name
 const wchar_t g_szClassName[] = L"JustASampleWin32Class";
@@ -127,6 +138,77 @@ void CleanupDoubleBuffering()
     }
 }
 
+void CreateUI(HWND hwnd)
+{
+    // Initialize component manager
+    g_componentManager = std::make_unique<ComponentManager>(hwnd);
+    
+    // Create root component
+    g_rootComponent = std::make_unique<Component>();
+    RECT rcClient;
+    GetClientRect(hwnd, &rcClient);
+    g_rootComponent->setBounds(0, 0, rcClient.right, rcClient.bottom);
+    g_componentManager->setRootComponent(g_rootComponent.get());
+    
+    // Create sample UI components (placeholder for full UI)
+    Label* titleLabel = new Label(L"Just a Sample - Win32 Audio Sampler");
+    titleLabel->setBounds(20, 20, 400, 30);
+    titleLabel->setAlignment(DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+    g_rootComponent->addChildComponent(titleLabel);
+    
+    Label* infoLabel = new Label(L"Double-buffered Win32 implementation with WASAPI audio");
+    infoLabel->setBounds(20, 60, 500, 20);
+    infoLabel->setTextColor(RGB(100, 100, 100));
+    g_rootComponent->addChildComponent(infoLabel);
+    
+    // Add load button
+    Button* loadButton = new Button(L"Load Sample");
+    loadButton->setBounds(20, 100, 120, 30);
+    loadButton->setClickCallback([]() {
+        MessageBox(NULL, L"File chooser would open here", L"Info", MB_OK);
+    });
+    g_rootComponent->addChildComponent(loadButton);
+    
+    // Add play button
+    Button* playButton = new Button(L"Play");
+    playButton->setBounds(150, 100, 80, 30);
+    playButton->setClickCallback([]() {
+        if (g_audioProcessor && g_audioProcessor->isAudioInitialized())
+        {
+            g_audioProcessor->playTestNote();
+        }
+    });
+    g_rootComponent->addChildComponent(playButton);
+    
+    // Add gain slider
+    Label* gainLabel = new Label(L"Gain");
+    gainLabel->setBounds(20, 150, 60, 30);
+    g_rootComponent->addChildComponent(gainLabel);
+    
+    Slider* gainSlider = new Slider(Slider::Rotary);
+    gainSlider->setBounds(90, 150, 60, 60);
+    gainSlider->setRange(0.0f, 1.0f);
+    gainSlider->setValue(0.75f);
+    gainSlider->setValueChangedCallback([](float value) {
+        if (g_audioProcessor)
+        {
+            g_audioProcessor->setGain(value);
+        }
+    });
+    g_rootComponent->addChildComponent(gainSlider);
+    
+    // Add waveform display
+    WaveformDisplay* waveform = new WaveformDisplay();
+    waveform->setBounds(20, 230, rcClient.right - 40, 200);
+    g_rootComponent->addChildComponent(waveform);
+}
+
+void CleanupUI()
+{
+    g_componentManager.reset();
+    g_rootComponent.reset();
+}
+
 void PaintDoubleBuffered(HWND hwnd)
 {
     PAINTSTRUCT ps;
@@ -134,20 +216,18 @@ void PaintDoubleBuffered(HWND hwnd)
 
     if (g_hdcMem)
     {
-        // Clear background
+        // Clear background with dark gray
         RECT rcClient;
         GetClientRect(hwnd, &rcClient);
-        FillRect(g_hdcMem, &rcClient, (HBRUSH)(COLOR_WINDOW + 1));
+        HBRUSH bgBrush = CreateSolidBrush(RGB(45, 45, 48));
+        FillRect(g_hdcMem, &rcClient, bgBrush);
+        DeleteObject(bgBrush);
 
-        // Draw to memory DC here
-        // This is where all custom drawing will happen
-        // For now, just draw a sample text
-        SetBkMode(g_hdcMem, TRANSPARENT);
-        SetTextColor(g_hdcMem, RGB(0, 0, 0));
-        
-        const wchar_t* text = L"Just a Sample - Win32 Version";
-        RECT textRect = rcClient;
-        DrawText(g_hdcMem, text, -1, &textRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+        // Render all components if component manager exists
+        if (g_componentManager)
+        {
+            g_componentManager->render(g_hdcMem);
+        }
 
         // Copy the memory DC to the screen DC (double buffer blit)
         // This eliminates flicker by doing all drawing off-screen first
@@ -165,6 +245,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             // Initialize double buffering on window creation
             InitializeDoubleBuffering(hwnd);
+            
+            // Initialize audio processor
+            g_audioProcessor = std::make_unique<SamplerProcessor>();
+            if (g_audioProcessor->initializeAudio(44100, 512))
+            {
+                g_audioProcessor->initializeMidi();
+                g_audioProcessor->startPlayback();
+            }
+            
+            // Create UI components
+            CreateUI(hwnd);
+            
             return 0;
         }
 
@@ -173,6 +265,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             // Reinitialize double buffering when window is resized
             // This ensures the back buffer matches the new window size
             InitializeDoubleBuffering(hwnd);
+            
+            // Update root component size
+            if (g_rootComponent)
+            {
+                RECT rcClient;
+                GetClientRect(hwnd, &rcClient);
+                g_rootComponent->setBounds(0, 0, rcClient.right, rcClient.bottom);
+            }
+            
             InvalidateRect(hwnd, NULL, FALSE);
             return 0;
         }
@@ -191,11 +292,69 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             // This prevents flickering
             return 1;
         }
+        
+        case WM_LBUTTONDOWN:
+        {
+            int x = GET_X_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
+            if (g_componentManager)
+            {
+                g_componentManager->handleMouseDown(x, y, MK_LBUTTON);
+            }
+            return 0;
+        }
+        
+        case WM_LBUTTONUP:
+        {
+            int x = GET_X_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
+            if (g_componentManager)
+            {
+                g_componentManager->handleMouseUp(x, y, MK_LBUTTON);
+            }
+            return 0;
+        }
+        
+        case WM_MOUSEMOVE:
+        {
+            int x = GET_X_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
+            if (g_componentManager)
+            {
+                g_componentManager->handleMouseMove(x, y);
+            }
+            return 0;
+        }
+        
+        case WM_MOUSEWHEEL:
+        {
+            int x = GET_X_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
+            int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+            if (g_componentManager)
+            {
+                g_componentManager->handleMouseWheel(x, y, delta);
+            }
+            return 0;
+        }
 
         case WM_DESTROY:
         {
+            // Clean up audio processor
+            if (g_audioProcessor)
+            {
+                g_audioProcessor->stopPlayback();
+                g_audioProcessor->releaseAudio();
+                g_audioProcessor->releaseMidi();
+                g_audioProcessor.reset();
+            }
+            
+            // Clean up UI
+            CleanupUI();
+            
             // Clean up double buffering resources
             CleanupDoubleBuffering();
+            
             PostQuitMessage(0);
             return 0;
         }
