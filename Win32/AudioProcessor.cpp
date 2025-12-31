@@ -255,6 +255,8 @@ void Win32AudioProcessor::releaseMidi()
 
 void Win32AudioProcessor::prepareToPlay(double sampleRate, int maximumExpectedSamplesPerBlock)
 {
+    (void)sampleRate;
+    (void)maximumExpectedSamplesPerBlock;
     // Override in derived class
 }
 
@@ -265,6 +267,7 @@ void Win32AudioProcessor::releaseResources()
 
 bool Win32AudioProcessor::loadSampleFromFile(const wchar_t* filePath)
 {
+    (void)filePath;
     // This is a placeholder - actual implementation would use
     // Win32 APIs to read WAV/audio files
     // For now, just return false
@@ -398,6 +401,8 @@ void Win32AudioProcessor::audioThreadRun()
 void CALLBACK Win32AudioProcessor::MidiInProc(HMIDIIN hMidiIn, UINT wMsg, DWORD_PTR dwInstance,
                                               DWORD_PTR dwParam1, DWORD_PTR dwParam2)
 {
+    (void)hMidiIn;
+    
     if (wMsg != MIM_DATA)
         return;
 
@@ -456,6 +461,8 @@ void SamplerVoice::startNote(int midiNoteNumber, float velocity, const AudioBuff
 
 void SamplerVoice::stopNote(float velocity, bool allowTailOff)
 {
+    (void)velocity;
+    
     if (allowTailOff)
     {
         m_isReleasing = true;

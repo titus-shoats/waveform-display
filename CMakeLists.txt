@@ -34,6 +34,13 @@ if(MSVC)
     set_property(TARGET JustASampleWin32 PROPERTY
         MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     
+    # Compiler definitions
+    target_compile_definitions(JustASampleWin32 PRIVATE
+        UNICODE          # Use Unicode (wide character) Windows API
+        _UNICODE         # Use Unicode C runtime
+        NOMINMAX         # Prevent Windows.h from defining min/max macros
+    )
+    
     # Compiler flags for best practices
     target_compile_options(JustASampleWin32 PRIVATE
         /W4           # Warning level 4

@@ -145,7 +145,8 @@ void SamplerProcessor::processReverb(AudioBuffer& buffer)
 {
     // Simple reverb using delay lines (very basic implementation)
     const float reverbMix = 0.3f;
-    const int reverbDelay = 10000; // samples
+    const int reverbDelay = 10000; // samples (reserved for future use)
+    (void)reverbDelay;
     
     for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
     {
@@ -201,6 +202,7 @@ void SamplerProcessor::processChorus(AudioBuffer& buffer)
     for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
     {
         float* channelData = buffer.getWritePointer(ch);
+        (void)channelData; // Reserved for future chorus implementation
         // Placeholder - real chorus would modulate delay time
     }
 }
@@ -262,12 +264,18 @@ bool SamplerProcessor::canLoadFileExtension(const wchar_t* filePath) const
     // Convert to lowercase for comparison
     std::transform(path.begin(), path.end(), path.begin(), ::towlower);
     
+    // Helper lambda for ends_with (C++17 compatible)
+    auto ends_with = [](const std::wstring& str, const std::wstring& suffix) {
+        if (suffix.size() > str.size()) return false;
+        return str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+    };
+    
     // Check for supported extensions
-    return (path.ends_with(L".wav") || 
-            path.ends_with(L".mp3") || 
-            path.ends_with(L".aiff") || 
-            path.ends_with(L".flac") ||
-            path.ends_with(L".ogg"));
+    return (ends_with(path, L".wav") || 
+            ends_with(path, L".mp3") || 
+            ends_with(path, L".aiff") || 
+            ends_with(path, L".flac") ||
+            ends_with(path, L".ogg"));
 }
 
 bool SamplerProcessor::saveState(const wchar_t* filePath)

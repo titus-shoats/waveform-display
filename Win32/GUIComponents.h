@@ -52,11 +52,11 @@ public:
     bool isVisible() const { return m_visible; }
 
     // Mouse events
-    virtual void mouseDown(int x, int y, UINT button) {}
-    virtual void mouseUp(int x, int y, UINT button) {}
-    virtual void mouseMove(int x, int y) {}
-    virtual void mouseDrag(int x, int y) {}
-    virtual void mouseWheel(int x, int y, int delta) {}
+    virtual void mouseDown(int x, int y, UINT button) { (void)x; (void)y; (void)button; }
+    virtual void mouseUp(int x, int y, UINT button) { (void)x; (void)y; (void)button; }
+    virtual void mouseMove(int x, int y) { (void)x; (void)y; }
+    virtual void mouseDrag(int x, int y) { (void)x; (void)y; }
+    virtual void mouseWheel(int x, int y, int delta) { (void)x; (void)y; (void)delta; }
     virtual void mouseEnter() {}
     virtual void mouseExit() {}
 
