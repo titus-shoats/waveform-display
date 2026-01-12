@@ -2,3 +2,25 @@
 **/Builds
 **/JuceLibraryCode
 **/Installer
+
+# Win32 build artifacts
+build/
+bin/
+lib/
+*.obj
+*.exe
+*.pdb
+*.ilk
+*.lib
+*.exp
+*.idb
+*.suo
+*.user
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+.vs/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
